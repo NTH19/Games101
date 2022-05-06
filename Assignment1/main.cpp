@@ -2,7 +2,10 @@
 #include "rasterizer.hpp"
 #include <eigen3/Eigen/Eigen>
 #include <iostream>
+#include <cmath>
 #include <opencv2/opencv.hpp>
+
+#define DEG2RAD(x) (x*3.1415/180)
 
 constexpr double MY_PI = 3.1415926;
 
@@ -25,7 +28,14 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 
     // TODO: Implement this function
     // Create the model matrix for rotating the triangle around the Z axis.
+    Eigen::Matrix4f trans;
+    float radian = DEG2RAD(rotation_angle);
+    trans << std::cos(radian), -std::sin(radian), 0, 0,
+            std::sin(radian), std::cos(radian), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1;
     // Then return it.
+    model = trans * model;
 
     return model;
 }
@@ -33,13 +43,24 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar)
 {
-    // Students will implement this function
 
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
-
+ 
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
     // Then return it.
+    float eye_fov_radian = DEG2RAD(eye_fov);
+
+    float t = std::tan(eye_fov_radian / 2) * std::abs(zNear);
+    float r = t * aspect_ratio;
+    float l = -r;
+    float b = -t;
+
+    projection << 2 * zNear / (r - l), 0, (l + r) / (l - r), 0,
+        0, 2 * zNear / (t - b), (b + t) / (b - t), 0,
+        0, 0, (zNear + zFar) / (zNear - zFar), -2 * zNear * zFar / (zNear - zFar),
+        0, 0, 1, 0;
+
 
     return projection;
 }
